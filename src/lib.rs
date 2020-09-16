@@ -32,6 +32,25 @@
 //!         ]
 //!     }
 //! );
+//! 
+//! fn main() {
+//!     // write a specific value to a field of the register
+//!     FOO::Register.write_value( FOO::BAL::VAL1 );
+//! 
+//!     // combine two field values with logical OR
+//!     FOO::Register.write_value( FOO::BAL::VAL1 | FOO::BAL::VAL2 );
+//! 
+//!     // if there is no field defined for the MMIO register or raw value storage
+//!     // is preffered the raw value could be written
+//!     FOO::Register.write_value(FOO::BAZ::with_value(0b101));
+//!     FOO::Register.write(FOO::BAZ, 0b101);
+//!     FOO::Register.set(0x1F);
+//! 
+//!     // reading from the MMIO register works in a simmilar way
+//!     let baz_val = FOO::Register.read(FOO::BAL); // return 0b01 or 0b10 eg.
+//!     let baz_field = FOO::Register.read_value(FOO::BAL); // returns a FieldValue
+//!     let raw_val = FOO::Register.get();
+//! }
 //! ```
 //!
 

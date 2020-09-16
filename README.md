@@ -48,7 +48,7 @@ fn main() {
     FOO::Register.write_value( FOO::BAL::VAL1 );
 
     // combine two field values with logical OR
-    FOO::Register.write_value( FOO::BAZ::VAL1 | FOO::BAL::VAL2 );
+    FOO::Register.write_value( FOO::BAL::VAL1 | FOO::BAL::VAL2 );
 
     // if there is no field defined for the MMIO register or raw value storage
     // is preffered the raw value could be written
