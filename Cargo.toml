@@ -1,6 +1,6 @@
 [package]
 name = "ruspiro-mmio-register"
-authors = ["2ndTaleStudio <43264484+2ndTaleStudio@users.noreply.github.com>"]
+authors = ["Andre Borrmann <pspwizard@gmx.de>"]
 version = "0.0.1" # remember to update html_root_url in lib.rs
 description = """
 Place a brief description of this library here
