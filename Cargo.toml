@@ -10,7 +10,7 @@ readme = "README.md"
 repository = "https://github.com/RusPiRo/ruspiro-mmio-register/tree/v||VERSION||"
 documentation = "https://docs.rs/ruspiro-mmio-register/||VERSION||"
 categories = ["no-std", "embedded"]
-keywords = ["ruspiro", "mmio", "register", "raspberry pi"]
+keywords = ["ruspiro", "mmio", "register", "raspberrypi"]
 edition = "2018"
 exclude = [".travis.yml", "Makefile.toml"]
 
