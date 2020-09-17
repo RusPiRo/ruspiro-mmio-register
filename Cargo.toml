@@ -1,7 +1,7 @@
 [package]
 name = "ruspiro-mmio-register"
 authors = ["Andre Borrmann <pspwizard@gmx.de>"]
-version = "0.0.1" # remember to update html_root_url in lib.rs
+version = "0.1.0" # remember to update html_root_url in lib.rs
 description = """
 Place a brief description of this library here
 """
@@ -10,7 +10,7 @@ readme = "README.md"
 repository = "https://github.com/RusPiRo/ruspiro-mmio-register/tree/v||VERSION||"
 documentation = "https://docs.rs/ruspiro-mmio-register/||VERSION||"
 categories = ["no-std", "embedded"]
-keywords = ["ruspiro"]
+keywords = ["ruspiro", "mmio", "register", "raspberry pi"]
 edition = "2018"
 exclude = [".travis.yml", "Makefile.toml"]
 

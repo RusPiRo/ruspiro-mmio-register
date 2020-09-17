@@ -1,22 +1,18 @@
 # Changelog
 
-## :apple: v0.0.1
+## :apple: v0.1.0
 
-If applicable add some description of the release here.
+This is the initial version based on the previous *ruspiro-register* crate. It contains the extracted MMIO macro and related stuff.
 
 - ### :bulb: Features
   
-  List the features that were added with this release.
-
-- ### :detective: Fixes
-  
-  List the bug fixes that are part of this release - if applicable link the respective PR.
+  - provide the `define_mmio_register!` macro to define memory mapped registers
 
 - ### :wrench: Maintenance
 
-  List the changes that neither fix a bug nor add a feature but where necessary to improve code quality or performance or the like.
+  - initial Tracis-CI pipeline setup
 
 - ### :book: Documentation
   
-  List enhancements to documentation only.
+  - Initial documentation for crates.io and doc.rs
   
