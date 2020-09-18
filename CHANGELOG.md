@@ -1,5 +1,19 @@
 # Changelog
 
+## :peach: v0.1.1
+
+The `ruspiro-register` crate was refactored to only contained shared structures and macros eble to be re-used by other crates like this one implementing the register functions. So this version utilizes this crate as dependency.
+
+- ### :wrench: Maintenance
+
+  - Maintained the proper dependency and adjusted the tpe and macros usages
+  - Adjusted the file headers to reflect copyright as of 2020 and the correct author
+  - Add some unit tests for the register access functions (read, write, update)
+
+- ### :book: Documentation
+
+  - Fixed minor documentation flaws
+
 ## :apple: v0.1.0
 
 This is the initial version based on the previous *ruspiro-register* crate. It contains the extracted MMIO macro and related stuff.

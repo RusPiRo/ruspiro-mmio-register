@@ -1,6 +1,6 @@
 /***********************************************************************************************************************
- * Copyright (c) 2019 by the authors
- *
+ * Copyright (c) 2020 by the authors
+ * 
  * Author: André Borrmann <pspwizard@gmx.de>
  * License: Apache License 2.0 / MIT
  **********************************************************************************************************************/
@@ -9,36 +9,6 @@
 //!
 //! The macros are used to simplify the definition of system registers as well as MMIO register.
 //!
-
-/// Helper macro to define the fields a register may contain of.<br>
-/// This is typically part of the register definition and will be applied there. It's not intended for use outside
-/// of a register definition.
-#[doc(hidden)]
-#[macro_export]
-macro_rules! register_field {
-    ($t:ty, $field:ident, $offset:expr) => {
-        #[allow(unused_variables, dead_code)]
-        #[doc(hidden)]
-        pub const $field: RegisterField<$t> = RegisterField::<$t>::new(1, $offset);
-    };
-    ($t:ty, $field:ident, $offset:expr, $bits:expr) => {
-        #[allow(unused_variables, dead_code)]
-        #[doc(hidden)]
-        pub const $field: RegisterField<$t> = RegisterField::<$t>::new((1 << $bits) - 1, $offset);
-    };
-}
-
-#[doc(hidden)]
-#[macro_export]
-macro_rules! register_field_values {
-    ($field:ident, $t:ty, $($($fvdoc:expr)?, $enum:ident = $value:expr),*) => {
-        $(
-            $(#[doc = $fvdoc])?
-            #[allow(unused_variables, dead_code)]
-            pub const $enum:RegisterFieldValue::<$t> = RegisterFieldValue::<$t>::new($field, $value);
-        )*
-    };
-}
 
 /// Macro to define a MMIO register with specific defined access mode.<br>
 /// The access mode could one of: **ReadOnly**, **WriteOnly**, **ReadWrite**.<br>

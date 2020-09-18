@@ -13,7 +13,7 @@ To use this crate simply add the dependency to your ``Cargo.toml`` file:
 
 ```toml
 [dependencies]
-ruspiro-mmio-register = "0.1.0"
+ruspiro-mmio-register = "0.1.1"
 ```
 
 The definition of MMIO registers is straight forward using the provided `define_mmio_register!` macro like so:
