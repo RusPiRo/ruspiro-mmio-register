@@ -1,12 +1,13 @@
 /***********************************************************************************************************************
- * Copyright (c) 2019 by the authors
- *
+ * Copyright (c) 2020 by the authors
+ * 
  * Author: André Borrmann <pspwizard@gmx.de>
  * License: Apache License 2.0 / MIT
  **********************************************************************************************************************/
 #![doc(html_root_url = "https://docs.rs/ruspiro-mmio-register/||VERSION||")]
 // we require to run with 'std' in unit tests and doc tests to have an allocator in place
 #![cfg_attr(not(any(test, doctest)), no_std)]
+#![cfg_attr(test, feature(const_raw_ptr_to_usize_cast))]
 #![feature(const_fn)]
 
 //! # RusPiRo MMIO Register
@@ -54,37 +55,10 @@
 //! ```
 //!
 
-use core::cmp::PartialEq;
-use core::ops::{BitAnd, BitOr, Not, Shl, Shr};
 use core::ptr::{read_volatile, write_volatile};
 
+pub use ruspiro_register::*;
 pub mod macros;
-
-/// This trait is used to describe the register size/length as type specifier. The trait is only implemented for the
-/// internal types **u8**, **u16**, **u32** and **u64** to ensure safe register access sizes with compile time checking
-pub trait RegisterType:
-    Copy
-    + Clone
-    + PartialEq
-    + BitOr<Output = Self>
-    + BitAnd<Output = Self>
-    + Not<Output = Self>
-    + Shl<Self, Output = Self>
-    + Shr<Self, Output = Self>
-{
-}
-
-// Internal macro to ease the assignment of the custom trait to supported register sizes
-#[doc(hidden)]
-macro_rules! registertype_impl {
-    // invoke the macro for a given type t as often as types are provided when invoking the macro
-    ($( $t:ty ),*) => ($(
-        impl RegisterType for $t { }
-    )*)
-}
-
-// implement the type trait for specific unsigned types to enable only those register types/sizes
-registertype_impl![u8, u16, u32, u64];
 
 /// This struct allows read only access to a register.
 #[derive(Clone, Debug)]
@@ -106,225 +80,187 @@ pub struct ReadWrite<T: RegisterType> {
 
 /*************** internal used macros to ease implementation ******************/
 macro_rules! registernew_impl {
-    () => {
+    ($t:ty) => {
         /// Create a new instance of the register access struct.
         #[allow(dead_code)]
-        pub const fn new(addr: u32) -> Self {
+        pub const fn new(addr: usize) -> Self {
             Self {
-                ptr: addr as *mut T,
+                ptr: addr as *mut $t,
             }
         }
     };
 }
 
 macro_rules! registerget_impl {
-    () => {
+    ($t:ty) => {
         /// Read raw content of a register.
         #[inline]
         #[allow(dead_code)]
-        pub fn get(&self) -> T {
+        pub fn get(&self) -> $t {
             unsafe { read_volatile(self.ptr) }
         }
 
         /// Read the value of a specific register field
         #[inline]
         #[allow(dead_code)]
-        pub fn read(&self, field: RegisterField<T>) -> T {
+        pub fn read(&self, field: RegisterField<$t>) -> $t {
             let val = self.get();
-            (val >> field.shift) & field.mask
+            (val & field.mask() ) >> field.shift() 
         }
 
         /// Read the value of the register into a RegisterFieldValue structure
         #[inline]
         #[allow(dead_code)]
-        pub fn read_value(&self, field: RegisterField<T>) -> RegisterFieldValue<T> {
-            RegisterFieldValue {
-                field,
-                value: self.read(field),
-            }
+        pub fn read_value(&self, field: RegisterField<$t>) -> RegisterFieldValue<$t> {
+            RegisterFieldValue::<$t>::new(field, self.read(field))
         }
     };
 }
 
 macro_rules! registerset_impl {
-    () => {
+    ($t:ty) => {
         /// Write raw content value to the register.
         #[inline]
         #[allow(dead_code)]
-        pub fn set(&self, value: T) {
+        pub fn set(&self, value: $t) {
             unsafe { write_volatile(self.ptr, value) }
         }
 
-        /// Write the value of a specific register field
+        /// Write the value of a specific register field, this will set all bits not coverd by this field to 0 !
         #[inline]
         #[allow(dead_code)]
-        pub fn write(&self, field: RegisterField<T>, value: T) {
-            let val = (value & field.mask) << field.shift;
+        pub fn write(&self, field: RegisterField<$t>, value: $t) {
+            let val = (value << field.shift()) & field.mask();
             self.set(val);
         }
 
-        /// Write the value of a given RegisterFieldValue to the register
+        /// Write the value of a given RegisterFieldValue to the register, this will set all bits not coverd by this 
+        /// field to 0 !
         #[inline]
         #[allow(dead_code)]
-        pub fn write_value(&self, fieldvalue: RegisterFieldValue<T>) {
-            self.write(fieldvalue.field, fieldvalue.value);
+        pub fn write_value(&self, fieldvalue: RegisterFieldValue<$t>) {
+            self.set(fieldvalue.raw_value());
         }
     };
 }
 
-impl<T: RegisterType> ReadOnly<T> {
-    registernew_impl!();
-    registerget_impl!();
+macro_rules! readonly_impl {
+    ($( $t:ty ),*) => { $(
+        impl ReadOnly<$t> {
+            registernew_impl!($t);
+            registerget_impl!($t);
+        }
+    )* };
 }
+readonly_impl![u8, u16, u32, u64];
 
-impl<T: RegisterType> WriteOnly<T> {
-    registernew_impl!();
-    registerset_impl!();
+macro_rules! writeonly_impl {
+    ($( $t:ty ),*) => { $(
+        impl WriteOnly<$t> {
+            registernew_impl!($t);
+            registerset_impl!($t);
+        }
+    )* };
 }
+writeonly_impl![u8, u16, u32, u64];
 
-impl<T: RegisterType> ReadWrite<T> {
-    registernew_impl!();
-    registerget_impl!();
-    registerset_impl!();
+macro_rules! readwrite_impl {
+    ($( $t:ty ),*) => { $(
+        impl ReadWrite<$t> {
+            registernew_impl!($t);
+            registerget_impl!($t);
+            registerset_impl!($t);
 
-    /// Udate a register field with a given value
-    #[inline]
-    #[allow(dead_code)]
-    pub fn modify(&self, field: RegisterField<T>, value: T) -> T {
-        let old_val = self.get();
-        let new_val =
-            (old_val & !(field.mask << field.shift)) | ((value & field.mask) << field.shift);
+            /// Udate a register field with a given value. The bits outside of this field remains untouched.
+            /// The function returns the register raw value set has been set with this update
+            #[inline]
+            #[allow(dead_code)]
+            pub fn modify(&self, field: RegisterField<$t>, value: $t) -> $t {
+                let old_val = self.get();
+                let raw_val = (value << field.shift()) & field.mask();
+                let new_val = (old_val & !field.mask()) | raw_val;
 
-        self.set(new_val);
-        new_val
+                self.set(new_val);
+                new_val 
+            }
+
+            /// Udate a register field with a given register field value. The bits outside of this field remains 
+            /// untouched. The function returns the register raw value set has been set with this update
+            #[inline]
+            #[allow(dead_code)]
+            pub fn modify_value(&self, fieldvalue: RegisterFieldValue<$t>) -> $t {
+                let old_val = self.get();
+                let raw_val = fieldvalue.raw_value() & fieldvalue.mask();
+                let new_val = (old_val & !fieldvalue.mask()) | raw_val;
+
+                self.set(new_val);
+                new_val
+            }
+        }
+    )* };
+}
+readwrite_impl![u8, u16, u32, u64];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn read_register() {
+        // simulate a MMIO register with a static u32 we take the address from
+        static mut REGISTER: u32 = 42;
+
+        let register = ReadWrite::<u32>::new(unsafe { &REGISTER } as *const u32 as usize);
+        assert_eq!(42, register.get());
     }
 
-    #[inline]
-    #[allow(dead_code)]
-    pub fn modify_value(&self, fieldvalue: RegisterFieldValue<T>) -> RegisterFieldValue<T> {
-        let new_val = self.modify(fieldvalue.field, fieldvalue.value);
-        RegisterFieldValue {
-            field: fieldvalue.field,
-            value: new_val,
-        }
+    #[test]
+    fn update_register() {
+        // simulate a MMIO register with a static u32 we take the address from
+        static mut REGISTER: u32 = 42;
+
+        let register = ReadWrite::<u32>::new(unsafe { &REGISTER } as *const u32 as usize);
+        register.set(190);
+        assert_eq!(190, unsafe { REGISTER });
+    }
+
+    #[test]
+    fn modify_register_field() {
+        // simulate a MMIO register with a static u32 we take the address from
+        static mut REGISTER: u32 = 0x0f0f;
+
+        let register = ReadWrite::<u32>::new(unsafe { &REGISTER } as *const u32 as usize);
+        let field = RegisterField::<u32>::new(0xF, 8);
+        let field_value = RegisterFieldValue::<u32>::new(field, 0x8);
+        
+        assert_eq!(0xF, register.read_value(field).value());
+
+        register.modify_value(field_value);
+        assert_eq!(0x8, register.read_value(field).value());
+        assert_eq!(0x080F, register.get());
+
+        register.modify(field, 0xA);
+        assert_eq!(0xA, register.read(field));
+        assert_eq!(0x0A0F, register.get());
+    }
+
+    #[test]
+    fn write_register_field() {
+        // simulate a MMIO register with a static u32 we take the address from
+        static mut REGISTER: u32 = 0x0f0f;
+        
+        let register = ReadWrite::<u32>::new(unsafe { &REGISTER } as *const u32 as usize);
+        let field = RegisterField::<u32>::new(0xF, 8);
+        let field_value = RegisterFieldValue::<u32>::new(field, 0x8);
+        
+        assert_eq!(0xF, register.read_value(field).value());
+
+        register.write_value(field_value);
+        assert_eq!(0x8, register.read_value(field).value());
+        assert_eq!(0x0800, register.get());
+
+        register.write(field, 0xC);
+        assert_eq!(0xC, register.read(field));
+        assert_eq!(0x0C00, register.get());
     }
 }
-
-/// Definition of a field contained inside of a register. Each field is defined by a mask and the bit shift value
-/// when constructing the field definition the stored mask is already shifted by the shift value
-#[derive(Copy, Clone, Debug)]
-pub struct RegisterField<T: RegisterType> {
-    mask: T,
-    shift: T,
-}
-
-/// Definition of a specific fieldvalue of a regiser. This structure allows to combine field values with bit operators
-/// like ``|`` and ``&`` to build the final value that should be written to a register
-#[derive(Copy, Clone, Debug)]
-pub struct RegisterFieldValue<T: RegisterType> {
-    /// register field definition
-    field: RegisterField<T>,
-    /// register field value
-    value: T,
-}
-
-// Internal helper macro to implement:
-// - ``RegisterField``struct for all relevant basic types
-// - ``FieldValue`` struct for all relevant basic types
-// - the operators for ``FieldValue``struct for all relevant basic types
-#[doc(hidden)]
-macro_rules! registerfield_impl {
-    ($($t:ty),*) => ($(
-        impl RegisterField<$t> {
-            /// Create a new register field definition with the mask and the shift offset for this
-            /// mask. The offset is the bit offset this field begins.
-            #[inline]
-            #[allow(dead_code)]
-            pub const fn new(mask: $t, shift: $t) -> RegisterField<$t> {
-                Self {
-                    mask,
-                    shift,
-                }
-            }
-
-            /// retrieve the current mask of the field shifted to its correct position
-            #[inline]
-            #[allow(dead_code)]
-            pub fn mask(&self) -> $t {
-                self.mask.checked_shl(self.shift as u32).unwrap_or(0)
-            }
-
-            /// retrieve the current shift of the field
-            #[allow(dead_code)]
-            #[inline]
-            pub fn shift(&self) -> $t {
-                self.shift
-            }
-        }
-
-        impl RegisterFieldValue<$t> {
-            /// Create a new fieldvalue based on the field definition and the value given
-            #[inline]
-            #[allow(dead_code)]
-            pub const fn new(field: RegisterField<$t>, value: $t) -> Self {
-                RegisterFieldValue {
-                    field,
-                    value: value & field.mask //<< field.shift
-                }
-            }
-
-            /// Retrieve the register field value
-            #[inline]
-            #[allow(dead_code)]
-            pub fn value(&self) -> $t {
-                self.value //>> self.field.shift()
-            }
-
-            /// Retrieve the register field raw value, means the value is returned in it's position
-            /// as it appears in the register when read with the field mask applied but not
-            /// shifted
-            #[inline]
-            #[allow(dead_code)]
-            pub fn raw_value(&self) -> $t {
-                self.value.checked_shl(self.field.shift as u32).unwrap_or(0)
-            }
-
-            /// Retrieve the field mask used with this register field. The mask is shifted to it's
-            /// corresponding field position
-            #[inline]
-            #[allow(dead_code)]
-            pub fn mask(&self) -> $t {
-                self.field.mask()
-            }
-        }
-
-        impl BitOr for RegisterFieldValue<$t> {
-            type Output = RegisterFieldValue<$t>;
-
-            #[inline]
-            #[allow(dead_code)]
-            fn bitor(self, rhs: RegisterFieldValue<$t>) -> Self {
-                let field = RegisterField::<$t>::new( self.field.mask() | rhs.field.mask(), 0);
-                RegisterFieldValue {
-                    field,
-                    value: (self.raw_value() | rhs.raw_value()),
-                }
-            }
-        }
-
-        impl BitAnd for RegisterFieldValue<$t> {
-            type Output = RegisterFieldValue<$t>;
-            #[inline]
-            #[allow(dead_code)]
-            fn bitand(self, rhs: RegisterFieldValue<$t>) -> Self {
-                let field = RegisterField::<$t>::new( self.field.mask() & rhs.field.mask(), 0);
-                RegisterFieldValue {
-                    field,
-                    value: (self.raw_value() & rhs.raw_value()),
-                }
-            }
-        }
-    )*);
-}
-
-registerfield_impl![u8, u16, u32, u64];
