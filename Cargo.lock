@@ -2,4 +2,11 @@
 # It is not intended for manual editing.
 [[package]]
 name = "ruspiro-mmio-register"
-version = "0.1.0"
+version = "0.1.1"
+dependencies = [
+ "ruspiro-register",
+]
+
+[[package]]
+name = "ruspiro-register"
+version = "0.5.0"
