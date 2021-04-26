@@ -1,7 +1,7 @@
 [package]
 name = "ruspiro-mmio-register"
 authors = ["Andre Borrmann <pspwizard@gmx.de>"]
-version = "0.1.1" # remember to update html_root_url in lib.rs
+version = "0.1.2" # remember to update html_root_url in lib.rs
 description = """
 The crate provides macros to conviniently define memory mapped I/O (MMIO) registers.
 """
@@ -12,12 +12,10 @@ documentation = "https://docs.rs/ruspiro-mmio-register/||VERSION||"
 categories = ["no-std", "embedded"]
 keywords = ["ruspiro", "mmio", "register", "raspberrypi"]
 edition = "2018"
-exclude = [".travis.yml", "Makefile.toml"]
+exclude = ["Makefile.toml", ".cargo/config.toml"]
 
 [badges]
-travis-ci = { repository = "RusPiRo/ruspiro-mmio-register", branch = "release" }
 maintenance = { status = "actively-developed" }
-is-it-maintained-open-issues = { repository = "RusPiRo/ruspiro-mmio-register" }
 
 [lib]
 
@@ -26,10 +24,11 @@ is-it-maintained-open-issues = { repository = "RusPiRo/ruspiro-mmio-register" }
 # cc = "1.0"
 
 [dependencies]
-ruspiro-register = "0.5"
+ruspiro-register = "~0.5.4"
 
-[features]
-ruspiro_pi3 = [ ]
+[package.metadata.docs.rs]
+default-target = "aarch64-unknown-linux-gnu"
+features = []
 
 [patch.crates-io]
-ruspiro-register = { git = "https://github.com/RusPiRo/ruspiro-register.git", branch = "master" }
+ruspiro-register = { git = "https://github.com/RusPiRo/ruspiro-register.git", branch = "development" }
