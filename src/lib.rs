@@ -8,7 +8,6 @@
 // we require to run with 'std' in unit tests and doc tests to have an allocator in place
 #![cfg_attr(not(any(test, doctest)), no_std)]
 #![cfg_attr(test, feature(const_raw_ptr_to_usize_cast))]
-#![feature(const_fn)]
 
 //! # RusPiRo MMIO Register
 //!
