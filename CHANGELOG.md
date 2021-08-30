@@ -1,5 +1,18 @@
 # Changelog
 
+## :lemon: v0.1.3
+
+Update the implementation to work with the current Rust version (1.56.0-nightly)
+
+- ### :wrench: Maintenance
+
+  - Remove the `const_fn` feature as this has been removed
+  - build the single crate with `aarch64-unknown-none` target
+
+## :peach: v0.1.2
+
+This a maintenance release migrating the build pipeline to github actions.
+
 ## :peach: v0.1.1
 
 The `ruspiro-register` crate was refactored to only contained shared structures and macros eble to be re-used by other crates like this one implementing the register functions. So this version utilizes this crate as dependency.
