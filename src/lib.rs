@@ -5,9 +5,7 @@
  * License: Apache License 2.0 / MIT
  **********************************************************************************************************************/
 #![doc(html_root_url = "https://docs.rs/ruspiro-mmio-register/||VERSION||")]
-// we require to run with 'std' in unit tests and doc tests to have an allocator in place
-#![cfg_attr(not(any(test, doctest)), no_std)]
-#![cfg_attr(test, feature(const_raw_ptr_to_usize_cast))]
+#![no_std]
 
 //! # RusPiRo MMIO Register
 //!
@@ -199,67 +197,3 @@ macro_rules! readwrite_impl {
     )* };
 }
 readwrite_impl![u8, u16, u32, u64];
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn read_register() {
-        // simulate a MMIO register with a static u32 we take the address from
-        static mut REGISTER: u32 = 42;
-
-        let register = ReadWrite::<u32>::new(unsafe { &REGISTER } as *const u32 as usize);
-        assert_eq!(42, register.get());
-    }
-
-    #[test]
-    fn update_register() {
-        // simulate a MMIO register with a static u32 we take the address from
-        static mut REGISTER: u32 = 42;
-
-        let register = ReadWrite::<u32>::new(unsafe { &REGISTER } as *const u32 as usize);
-        register.set(190);
-        assert_eq!(190, unsafe { REGISTER });
-    }
-
-    #[test]
-    fn modify_register_field() {
-        // simulate a MMIO register with a static u32 we take the address from
-        static mut REGISTER: u32 = 0x0f0f;
-
-        let register = ReadWrite::<u32>::new(unsafe { &REGISTER } as *const u32 as usize);
-        let field = RegisterField::<u32>::new(0xF, 8);
-        let field_value = RegisterFieldValue::<u32>::new(field, 0x8);
-        
-        assert_eq!(0xF, register.read_value(field).value());
-
-        register.modify_value(field_value);
-        assert_eq!(0x8, register.read_value(field).value());
-        assert_eq!(0x080F, register.get());
-
-        register.modify(field, 0xA);
-        assert_eq!(0xA, register.read(field));
-        assert_eq!(0x0A0F, register.get());
-    }
-
-    #[test]
-    fn write_register_field() {
-        // simulate a MMIO register with a static u32 we take the address from
-        static mut REGISTER: u32 = 0x0f0f;
-        
-        let register = ReadWrite::<u32>::new(unsafe { &REGISTER } as *const u32 as usize);
-        let field = RegisterField::<u32>::new(0xF, 8);
-        let field_value = RegisterFieldValue::<u32>::new(field, 0x8);
-        
-        assert_eq!(0xF, register.read_value(field).value());
-
-        register.write_value(field_value);
-        assert_eq!(0x8, register.read_value(field).value());
-        assert_eq!(0x0800, register.get());
-
-        register.write(field, 0xC);
-        assert_eq!(0xC, register.read(field));
-        assert_eq!(0x0C00, register.get());
-    }
-}

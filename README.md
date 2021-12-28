@@ -2,7 +2,7 @@
 
 The crate provides macros to conviniently define memory mapped I/O (MMIO) registers.
 
-[![Travis-CI Status](https://api.travis-ci.org/RusPiRo/ruspiro-mmio-register.svg?branch=release)](https://travis-ci.org/RusPiRo/ruspiro-mmio-register)
+![CI](https://github.com/RusPiRo/ruspiro-mmio-register/workflows/CI/badge.svg?branch=development)
 [![Latest Version](https://img.shields.io/crates/v/ruspiro-mmio-register.svg)](https://crates.io/crates/ruspiro-mmio-register)
 [![Documentation](https://docs.rs/ruspiro-mmio-register/badge.svg)](https://docs.rs/ruspiro-mmio-register)
 [![License](https://img.shields.io/crates/l/ruspiro-mmio-register.svg)](https://github.com/RusPiRo/ruspiro-mmio-register#license)
@@ -13,7 +13,7 @@ To use this crate simply add the dependency to your ``Cargo.toml`` file:
 
 ```toml
 [dependencies]
-ruspiro-mmio-register = "0.1.1"
+ruspiro-mmio-register = "||VERSION||"
 ```
 
 The definition of MMIO registers is straight forward using the provided `define_mmio_register!` macro like so:

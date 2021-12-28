@@ -1,5 +1,12 @@
 # Changelog
 
+## :lemon: v0.1.4
+
+- ### :wrench: Maintenance
+
+  - Update to compile with latest nightly and Rust edition 2021
+  - Update dependencies
+  
 ## :lemon: v0.1.3
 
 Update the implementation to work with the current Rust version (1.56.0-nightly)
