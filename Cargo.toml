@@ -1,7 +1,7 @@
 [package]
 name = "ruspiro-mmio-register"
 authors = ["Andre Borrmann <pspwizard@gmx.de>"]
-version = "0.1.3" # remember to update html_root_url in lib.rs
+version = "0.1.4" # remember to update html_root_url in lib.rs
 description = """
 The crate provides macros to conviniently define memory mapped I/O (MMIO) registers.
 """
@@ -11,20 +11,16 @@ repository = "https://github.com/RusPiRo/ruspiro-mmio-register/tree/v||VERSION||
 documentation = "https://docs.rs/ruspiro-mmio-register/||VERSION||"
 categories = ["no-std", "embedded"]
 keywords = ["ruspiro", "mmio", "register", "raspberrypi"]
-edition = "2018"
-exclude = ["Makefile.toml", ".cargo/config.toml"]
+edition = "2021"
+exclude = ["Makefile.toml", ".cargo/config.toml", ".github"]
 
 [badges]
 maintenance = { status = "actively-developed" }
 
 [lib]
 
-[build-dependencies]
-# uncomment this if a build.rs script should be run as part of the build process
-# cc = "1.0"
-
 [dependencies]
-ruspiro-register = "~0.5.4"
+ruspiro-register = "~0.5.5"
 
 [package.metadata.docs.rs]
 default-target = "aarch64-unknown-linux-gnu"
